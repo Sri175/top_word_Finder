@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Words Finder</title>
+</head>
+<body>
+    <h1>Enter URL to Find Top Words</h1>
+    <input type="text" id="urlInput" placeholder="Enter URL here" />
+    <br><br>
+    <label for="topWordsCount">Top N Words:</label>
+    <input type="number" id="topWordsCount" value="10" min="1" />
+    <br><br>
+    <button onclick="fetchWords()">Fetch Words</button>
+
+    <h2>Top Words</h2>
+    <table id="resultsTable" border="1">
+        <thead>
+            <tr>
+                <th>Word</th>
+                <th>Frequency</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <script>
+        async function fetchWords() {
+            const url = document.getElementById('urlInput').value;
+            const topWordsCount = document.getElementById('topWordsCount').value;
+            if (!url) {
+                alert("Please enter a valid URL!");
+                return;
+            }
+            try {
+                const response = await fetch('http://127.0.0.1:5000/fetch-words', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url, top_n: topWordsCount })
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    alert("Error: " + errorData.error);
+                    return;
+                }
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                alert("Error: " + error);
+            }
+        }
+
+        function displayResults(data) {
+            const tableBody = document.getElementById('resultsTable').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = ''; // Clear previous results
+            data.forEach(([word, frequency]) => {
+                const row = document.createElement('tr');
+                const wordCell = document.createElement('td');
+                wordCell.textContent = word;
+                const freqCell = document.createElement('td');
+                freqCell.textContent = frequency;
+                row.appendChild(wordCell);
+                row.appendChild(freqCell);
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
